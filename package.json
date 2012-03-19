@@ -1,0 +1,14 @@
+{ "name": "mprobe"
+, "version": "0.0.1"
+
+, "engines": { "node": ">=0.6" }
+
+, "dependencies":
+  { "message-ports": "~0.4.1"
+  }
+
+, "devDependencies":
+  { "coffee-script": "1.2.x"
+  }
+
+}
