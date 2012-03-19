@@ -1,0 +1,76 @@
+* { margin: 0; padding: 0 }
+
+body {
+  padding-top: 20px;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+body > .header {
+  position: fixed;
+  top: 0; right: 0; left: 0;
+  height: 20px;
+  z-index: 1;
+
+  padding: 0 15px;
+
+  font-weight: bold;
+  background: rgba(0,0,0,0.5);
+  color: white;
+}
+
+body > .header .controls {
+  position: absolute;
+  right: 15px;
+  top: 0;
+}
+
+body > .header .controls b {
+  background: rgba(255,255,255,0.3);
+  padding: 0 10px;
+  -webkit-border-radius: 3px;
+  font-weight: normal;
+  margin: 0 5px;
+  font-size: 11px;
+}
+
+.row {
+  position: relative;
+  color: #aaa;
+  background: #fbfbfb;
+  border-bottom: 1px solid #eee;
+  padding: 3px 0;
+}
+
+.row.highlight {
+  background: #fff;
+  color: #888;
+}
+
+/* not sure if there's a point to this */
+.row.lowlight {
+  padding: 0 0;
+  line-height: 14px;
+}
+
+.row.error > .header {
+  color: rgba(117,16,18, 0.5);
+  font-weight: bold;
+}
+
+.row > .header {
+  color: #bbb;
+  margin-left: 15px;
+
+}
+
+.row > .separator {
+  color: #eee;
+}
+
+.row > .timestamp {
+  position: absolute;
+  right: 15px;
+  font-size: 11px;
+}
