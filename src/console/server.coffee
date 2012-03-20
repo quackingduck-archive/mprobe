@@ -12,12 +12,13 @@ responders = []
 httpServer = new http.Server
 httpServer.on 'request', (req, res) ->
   res.write header
+  responders.shift()
   responders.push res
 
 # todo: pick random port
 httpServer.listen 8001, ->
   console.log "running on localhost:8001"
-  # todo, start web browser here
+  # start web browser here?
   setTimeout (-> fs.writeFileSync '/tmp/reload.txt', 'x'), 100
 
 # ---
