@@ -23,7 +23,7 @@ m = (msg) ->
 
 formatTime = (ms) ->
   d = new Date ms
-  "#{padInt d.getHours(), 2}:#{padInt d.getMinutes(), 2}:#{padInt d.getSeconds(), 2}:#{padInt d.getMilliseconds(), 3}"
+  "'#{padInt d.getMinutes(), 2}:#{padInt d.getSeconds(), 2}:#{padInt d.getMilliseconds(), 3}"
 
 padInt = (int, length) ->
   str = '' + int
