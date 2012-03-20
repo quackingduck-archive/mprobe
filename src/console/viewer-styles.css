@@ -96,12 +96,15 @@ body > .header .controls b {
 /* these shouldn't all look the same but it will do for now */
 .row > .header .test-suite,
 .row > .header .test-start,
-.row > .header .test-end
+.row > .header .test-end,
+.row.sql > .header > .wrap > span
  {
   font-family: sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
   background: hsla(219, 100%, 66%, 0.2);
   color: #555;
-  padding: 0 3px 1px 3px;
+  padding: 0 3px 0 3px;
   margin: 0 -3px;
   -webkit-border-radius: 2px;
 }

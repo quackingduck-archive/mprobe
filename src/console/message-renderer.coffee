@@ -11,14 +11,14 @@ mprobe does most of its interesting work.
 # the core message rendering function
 m = (msg) ->
   {meta, header, body} = msg
-  {headerHtml, bodyHtml} = process msg
+  {rowClass, headerHtml, bodyHtml} = process msg
 
   lastTimeActivitySeenFromServer = new Date
 
   scrolledToBottom = scrollBottom() is totalHeight()
 
   document.write """
-  <div class="row">
+  <div class="row #{rowClass or ''}">
     <span class="header"><span class="wrap">#{headerHtml or header}</span></span>
     <span class="separator"><span class="wrap">»</span></span>
     <span class="body"><span class="wrap">#{bodyHtml or JSON.stringify body}</span></span>
@@ -49,6 +49,11 @@ process = (msg) ->
       x.headerHtml = "<span class='test-end'>test end</span>"
       ms = meta.timestamp - store.testStarts[header.test_end.id]
       x.bodyHtml = "<span class='test-end'>completed in: #{ms}ms</span>"
+
+    else if header.sql?
+      x.rowClass = 'sql'
+      x.headerHtml = "<span>sql#{' <small>( + params)</small>' if header.params?}</span>"
+      x.bodyHtml = "<span>#{header.sql} #{JSON.stringify header.params if header.params?}</span>"
 
     else
       x.rowClass = 'probe'
@@ -84,11 +89,16 @@ totalHeight = -> document.body.scrollHeight
 
 # ---
 
+# Assume the browser closed the connection and refresh the browser window
+# after a long period of no messages. Ideally, I'd like the browser to keep
+# the connection open forever but haven't figured out how
+
 lastTimeActivitySeenFromServer = new Date
 
-setTimeout ->
+setInterval ->
   duration = (new Date) - lastTimeActivitySeenFromServer
-  window.location.reload() if duration > (100*60) # 1min
+  if duration > (2 * 1000 * 60) # 2mins
+    window.location.reload()
 , 1000
 
 # ---
