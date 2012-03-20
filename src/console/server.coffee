@@ -37,4 +37,4 @@ header = header.replace '{{styles}}', fs.readFileSync("#{__dirname}/viewer-style
 header = header.replace '{{message_rendering_script}}',
   coffee.compile fs.readFileSync("#{__dirname}/message-renderer.coffee",'utf8'), bare: yes
 
-renderMessage = (msg) -> "<script>renderMessage(#{JSON.stringify msg})</script>" + '\n'
+renderMessage = (msg) -> "<script>m(#{JSON.stringify msg})</script>" + '\n'
