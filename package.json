@@ -1,5 +1,5 @@
 { "name": "mprobe"
-, "version": "0.0.1"
+, "version": "0.0.2"
 
 , "bin": { "mprobe": "./bin/mprobe-dev" }
 
