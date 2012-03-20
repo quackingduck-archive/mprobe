@@ -59,9 +59,18 @@ body > .header .controls b {
   overflow: hidden;
 }
 
+.row:hover > span > .wrap {
+  height: auto;
+  overflow: none;
+}
+
 .row > .header {
   color: #aaa;
   width: 18%;
+}
+
+.row > .header > .wrap {
+  padding: 3px;
 }
 
 .row > .separator {
@@ -78,6 +87,28 @@ body > .header .controls b {
   color: #aaa;
   width: 100px;
   text-align: right;
+}
+
+/* --- */
+
+/* custom messsages */
+
+/* these shouldn't all look the same but it will do for now */
+.row > .header .test-suite,
+.row > .header .test-start,
+.row > .header .test-end
+ {
+  font-family: sans-serif;
+  background: hsla(219, 100%, 66%, 0.2);
+  color: #555;
+  padding: 0 3px 1px 3px;
+  margin: 0 -3px;
+  -webkit-border-radius: 2px;
+}
+
+.row > .header .probe {
+  font-weight: bold;
+  color: #555;
 }
 
 /* --- */
