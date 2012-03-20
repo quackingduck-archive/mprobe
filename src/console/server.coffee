@@ -3,15 +3,16 @@ fs = require 'fs'
 mp = require 'message-ports'
 coffee = require 'coffee-script'
 
-responder = null
+# every refresh we push a new responder into this array but
+# we only ever do anything with the newest one
+responders = []
 
 # ---
 
 httpServer = new http.Server
 httpServer.on 'request', (req, res) ->
-  return res.end("One browser window per console instance plz") if responder?
-  res.write header + '\n'
-  responder = res
+  res.write header
+  responders.push res
 
 # todo: pick random port
 httpServer.listen 8001, ->
@@ -24,6 +25,7 @@ httpServer.listen 8001, ->
 mp.messageFormat = 'json'
 sub = mp.sub '/tmp/mprobe-pub'
 sub (msg) ->
+  responder = responders[responders.length-1]
   if responder?
     responder.write renderMessage msg
 
