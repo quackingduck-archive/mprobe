@@ -8,10 +8,10 @@ renderMessage = (msg) ->
 
   document.write """
   <div class="row #{className}">
-    <span class="header">#{header}</span>
-    <span class="separator">➟</span>
-    <span class="body">#{JSON.stringify body}</span>
-    <span class="timestamp">#{formatTime meta.timestamp}</span>
+    <span class="header"><span class="wrap">#{header}</span></span>
+    <span class="separator"><span class="wrap">➟</span></span>
+    <span class="body"><span class="wrap">#{JSON.stringify body}</span></span>
+    <span class="timestamp"><span class="wrap">#{formatTime meta.timestamp}</span></span>
   </div>
   """
 
