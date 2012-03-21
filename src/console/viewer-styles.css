@@ -66,7 +66,7 @@ body > .header .controls b {
 
 .row > .header {
   color: #aaa;
-  width: 18%;
+  width: 15%;
 }
 
 .row > .header > .wrap {
@@ -79,8 +79,8 @@ body > .header .controls b {
   text-align: center;
 }
 
-.row > .body {
-
+.row > .body > .wrap {
+  white-space: pre-wrap;
 }
 
 .row > .timestamp {
@@ -97,7 +97,8 @@ body > .header .controls b {
 .row > .header .test-suite,
 .row > .header .test-start,
 .row > .header .test-end,
-.row.sql > .header > .wrap > span
+.row.sql > .header > .wrap > span,
+.row.request > .header > .wrap > span
  {
   font-family: sans-serif;
   font-size: 10px;
@@ -112,6 +113,11 @@ body > .header .controls b {
 .row > .header .probe {
   font-weight: bold;
   color: #555;
+}
+
+.row.boot {
+  font-weight: bold;
+  border-bottom: 1px solid #555;
 }
 
 /* --- */

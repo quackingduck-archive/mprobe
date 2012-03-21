@@ -46,14 +46,31 @@ process = (msg) ->
       store.testStarts[header.id] = meta.timestamp
 
     else if header.test_end?
-      x.headerHtml = "<span class='test-end'>test end</span>"
       ms = meta.timestamp - store.testStarts[header.test_end.id]
+      x.headerHtml = "<span class='test-end'>test end</span>"
       x.bodyHtml = "<span class='test-end'>completed in: #{ms}ms</span>"
 
     else if header.sql?
       x.rowClass = 'sql'
-      x.headerHtml = "<span>sql#{' <small>( + params)</small>' if header.params?}</span>"
-      x.bodyHtml = "<span>#{header.sql} #{JSON.stringify header.params if header.params?}</span>"
+      x.headerHtml = "<span>sql#{if header.params? then ' <small>( + params)</small>' else ''}</span>"
+      x.bodyHtml = "<span>#{header.sql} #{if header.params? then JSON.stringify(header.params) else ''}</span>"
+
+    else if header.request_start?
+      store.reqStarts[header.request_start] = meta.timestamp
+      x.rowClass = 'request'
+      x.headerHtml = "<span>request - start</span>"
+      x.bodyHtml = "<span>#{header.method} #{header.url}</span>"
+
+    else if header.request_end?
+      ms = meta.timestamp - store.reqStarts[header.request_end]
+      x.rowClass = 'request'
+      x.headerHtml = "<span>request - end</span>"
+      x.bodyHtml = "<span>#{ms}ms #{header.url}</span>"
+
+    else if header.boot?
+      x.rowClass = 'boot'
+      x.headerHtml = "<span>boot</span>"
+      x.bodyHtml = "<span>#{header.boot}</span>"
 
     else
       x.rowClass = 'probe'
@@ -61,14 +78,20 @@ process = (msg) ->
       x.bodyHtml = "<span class='probe'>#{JSON.stringify header}</span>"
 
 
+  else if (typeof header is 'string') and not body?
+    x.rowClass = 'probe'
+    x.headerHtml = "<span class='probe'>probe</span>"
+    x.bodyHtml = "<span class='probe'>#{e header}</span>"
+
   else if typeof body is 'string'
     # todo, html escape
-    x.bodyHtml = body
+    x.bodyHtml = e body
 
   return x
 
 store =
   testStarts: {}
+  reqStarts: {}
 
 
 formatTime = (ms) ->
@@ -79,6 +102,13 @@ padInt = (int, length) ->
   str = '' + int
   str = '0' + str while str.length < length
   str
+
+e = (str) ->
+  str.
+    replace(/&/g, '&amp;').
+    replace(/</g, '&lt;').
+    replace(/>/g, '&gt;').
+    replace(/"/g, '&quot;')
 
 # ---
 
