@@ -37,4 +37,10 @@ header = header.replace '{{styles}}', fs.readFileSync("#{__dirname}/viewer-style
 header = header.replace '{{message_rendering_script}}',
   coffee.compile fs.readFileSync("#{__dirname}/message-renderer.coffee",'utf8'), bare: yes
 
-renderMessage = (msg) -> "<script>m(#{JSON.stringify msg})</script>" + '\n'
+renderMessage = (msg) ->
+  # prevent browsers from running embedded script tags
+  # this is a pretty dirty hack, theres' probably some better way to do this
+  str = JSON.stringify msg
+  str = str.replace /<script>/g, "<scr|pt>"
+  str = str.replace /<\/script>/g, "</scr|pt>"
+  "<script>m(#{str})</script>" + '\n'
