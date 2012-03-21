@@ -129,7 +129,7 @@ setInterval ->
   duration = (new Date) - lastTimeActivitySeenFromServer
   if duration > (2 * 1000 * 60) # 2mins
     window.location.reload()
-, 1000
+, 200
 
 # ---
 
