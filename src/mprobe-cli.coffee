@@ -1,42 +1,96 @@
-@run = (rawArgs) ->
-  exit 0, usage if rawArgs.length is 0
+###
 
+`mprobe` (with no args) starts a broker, then starts the console, then opens
+a browser window to it. boom.
+
+###
+
+net = require 'net'
+http = require 'http'
+{spawn} = require 'child_process'
+
+@run = (rawArgs) ->
   args = parseArgs rawArgs
 
-  if      args.broker?  then require './broker'
-  else if args.console? then require './console/server'
-  else if args.demo?
-    process.env.PROBE = 'on'
-    require '../examples/example-client-app'
-  # unrecognized args
-  else exit 1, usage
+  exit 0, usage if args.help?
+  exit 1, versionNumber if args.version?
 
+  if args.demo?
+    require '../examples/demo'
+    return
+
+  probeName = process.env.MPROBE or 'mprobe'
+
+  c = net.connect "/tmp/#{probeName}-pull"
+
+  # Detect if the broker was already started
+  c.on 'connect', ->
+    console.log "- connected to broker at /tmp/#{probeName}-pub"
+    c.destroy()
+    startConsole()
+
+  # Otherwise start it first
+  c.on 'error', ->
+    startBroker()
+    startConsole()
+
+# ---
+
+startConsole = ->
+  console.log "- starting console"
+  findOpenPortGreaterThan 8000, (port) ->
+    mpConsole = require './console'
+    mpConsole.run port, ->
+      spawn 'open', ["http://localhost:#{port}"]
+
+startBroker = (cb) ->
+  require "./broker"
+
+# ---
+
+findOpenPortGreaterThan = (port, cb) ->
+  portFree port, (free) ->
+    if free then cb(port) else findOpenPortGreaterThan ++port, cb
+
+portFree = (port, cb) ->
+  c = net.connect port
+  c.on 'error',   -> c.destroy() ; cb yes
+  c.on 'connect', -> c.destroy() ; cb no
+
+# ---
+
+dir = __dirname
+npmBinDir = "#{dir}/../node_modules/.bin"
+
+# ---
 
 # convert array of strings into data structure
 parseArgs = (rawArgs) ->
   # todo: version
-  # todo: help
   first = rawArgs[0]
   switch first
-    when 'broker'  then { broker: yes }
-    when 'console' then { console: yes }
-    when 'demo'    then { demo: yes }
+    when '--help', '-h'  then { help: yes }
+    when '--version'     then { version: yes }
+    when '--demo'        then { demo: yes }
     else {}
 
 exit = (status, message) ->
   console.log message if message?
   process.exit status
 
+versionNumber = JSON.parse(
+  require('fs').readFileSync("#{dir}/../package.json")
+).version
+
+# todo: use real version
 usage = """
-Mprobe v0.0.1 (early alpha release)
+Mprobe v#{versionNumber}
 
-Run the broker
-  mprobe broker
+To start the console:
 
-Run the console
-  mprobe console
+  MPROBE=myproject mprobe
 
-Then send probes from your app. To test everything is working you can run
-the demo
-  mprobe demo
+To send some demo messages to test it's working:
+
+  MPROBE=myproject mprobe --demo
 """

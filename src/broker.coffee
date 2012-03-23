@@ -1,8 +1,14 @@
 mp = require 'message-ports'
 
-pub  = mp.pub  '/tmp/mprobe-pub'
-pull = mp.pull '/tmp/mprobe-pull'
+probeName = process.env.MPROBE or 'mprobe'
+
+pullPath = "/tmp/#{probeName}-pull"
+pubPath  = "/tmp/#{probeName}-pub"
+
+pub  = mp.pub  pubPath
+pull = mp.pull pullPath
 
 pull (msg) -> pub msg
 
-console.log "mprobe broker running"
+console.log "- broker listening on #{pullPath} and publishing on #{pubPath}"
+

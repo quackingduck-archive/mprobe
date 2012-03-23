@@ -119,21 +119,3 @@ body > .header .controls b {
   font-weight: bold;
   border-bottom: 1px solid #555;
 }
-
-/* --- */
-
-/* not sure about this stuff */
-
-/*
-.row.highlight {
-  background: #fff;
-  color: #888;
-}
-*/
-
-/*
-.row.error > .header {
-  color: rgba(117,16,18, 0.5);
-  font-weight: bold;
-}
-*/

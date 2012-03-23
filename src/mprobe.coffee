@@ -1,26 +1,22 @@
-# This is the client - i.e. the module required by other node apps to send to
-# messages to the broker
-
-# This is probably going to be overdesigned for the first few early versions
+# This is the node client - i.e. the module required by other node apps to
+# send to messages to the broker
 
 mp = require 'message-ports'
-
 mp.messageFormat = 'json'
 
-push = mp.push '/tmp/mprobe-pull'
+probeName = process.env.MPROBE or 'mprobe'
+push = mp.push "/tmp/#{probeName}-pull"
 
 defaultMeta =
-  # process-specific info
-  pid: 1234
+  pid:  process.pid
+  argv: process.argv
 
-module.exports = probe = (args...) ->
+probe = (args...) ->
   probe._send {}, args...
 
-probe.hl = (header, body) ->
-  probe._send { highlight: on }, header, body
-
 probe._send = (meta, header, body) ->
-  return unless process.env.PROBE?
   meta[k] = v for k,v of defaultMeta
   meta.timestamp = Date.now()
   push { meta, header, body }
+
+module.exports = probe

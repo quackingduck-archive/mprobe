@@ -138,4 +138,3 @@ boot = ->
   # sometimes you have to click this guy twice
   document.getElementById('follow-messages').addEventListener 'click', ->
     scollToBottom()
-
