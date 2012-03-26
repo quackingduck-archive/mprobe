@@ -12,15 +12,12 @@ or
 
 probe = require '../src/mprobe'
 
-probe "a string"
-probe "a string"
-probe "a string"
-probe "a string"
-probe "a string"
-probe "a string"
-probe "a string"
-probe "a string"
-probe "a string"
+probe() # naked probe
+probe "some string"
+probe "string probe", "string probe value"
+probe "number probe", 1
+probe "object probe", foo: "object probe value"
+probe "array probe", [1,2,"three"]
 
 console.log "demo messages sent"
 process.exit()
