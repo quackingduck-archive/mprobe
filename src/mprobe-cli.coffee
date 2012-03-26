@@ -9,6 +9,8 @@ net = require 'net'
 http = require 'http'
 {spawn} = require 'child_process'
 
+probeName = process.env.MPROBE or 'mprobe'
+
 @run = (rawArgs) ->
   args = parseArgs rawArgs
 
@@ -18,8 +20,6 @@ http = require 'http'
   if args.demo?
     require '../examples/demo'
     return
-
-  probeName = process.env.MPROBE or 'mprobe'
 
   c = net.connect "/tmp/#{probeName}-pull"
 
@@ -41,7 +41,8 @@ startConsole = ->
   findOpenPortGreaterThan 8000, (port) ->
     mpConsole = require './console'
     mpConsole.run port, ->
-      spawn 'open', ["http://localhost:#{port}"]
+      # require('fs').writeFileSync "/tmp/#{probeName}-touch", '' # for dev
+      # spawn 'open', ["http://localhost:#{port}"]
 
 startBroker = (cb) ->
   require "./broker"
