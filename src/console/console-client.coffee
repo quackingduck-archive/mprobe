@@ -261,7 +261,7 @@ addHandler 'SQL', ->
     @detailsNode.toggle state
     @loadedRow?.toggleDetails()
 
-  @when 'SQL end', timeout: 100, (loadedRow) ->
+  @when 'SQL end', timeout: 1000, (loadedRow) ->
     return no unless @data.id is loadedRow.data.id
     ms = mprobe.delta loadedRow.msg, @msg
     @summary.updateSegment 'duration', ms
@@ -291,6 +291,81 @@ addHandler 'SQL end', ->
     data = @row.data
     resultOrError = if data.error? then 'error' else 'result'
     @addSegment resultOrError, JSON.stringify(data[resultOrError]), color: 'json', label: resultOrError
+
+# ---
+
+addHandler 'Request', ->
+
+  @match (m) -> m.request_start?
+
+  @row (m) -> @data = @msg.body.request_start
+
+  @summary ->
+    data = @row.data
+    @addSegment 'method', data.method
+    @addSegment 'url', data.url
+    @addSegment 'duration', '...'
+
+  @details (state, firstTime) ->
+    @node.toggleClass 'focused', state
+    @loadedRow?.toggleDetails()
+    # todo: show request headers
+    # todo: show cookies
+
+  @when 'Request end', timeout: 1000, (loadedRow) ->
+    return no unless @data.id is loadedRow.data.id
+    ms = mprobe.delta loadedRow.msg, @msg
+    @summary.updateSegment 'duration', ms
+    @loadedRow = loadedRow
+
+addHandler 'Request end', ->
+
+  @match (m) -> m.request_end?
+
+  @row ->
+    @data = @msg.body.request_end
+
+  @summary ->
+    data = @row.data
+    @addSegment 'status', data.status
+
+  @details (state, firstTime) ->
+    @node.toggleClass 'focused', state
+
+# ---
+
+addHandler 'Templates Load', ->
+
+  @match (m) -> m is 'templates_load'
+
+  @row ->
+    @data = @msg.body
+
+  @summary ->
+    @addSegment 'duration', '...'
+
+  @details (state, firstTime) ->
+    @node.toggleClass 'focused', state
+    @loadedRow?.toggleDetails()
+
+  @when 'Templates Loaded', timeout: 1000, (loadedRow) ->
+    # return no unless @data is loadedRow.data
+    ms = mprobe.delta loadedRow.msg, @msg
+    @summary.updateSegment 'duration', ms
+    @loadedRow = loadedRow
+
+addHandler 'Templates Loaded', ->
+
+  @match (m) -> m is 'templates_loaded'
+
+  @row ->
+    @data = @msg.body
+    @hide()
+
+  @details (state, firstTime) ->
+    @node.toggleClass 'focused', state
+    @node.show if firstTime
+    @node.toggle state
 
 # ---
 
