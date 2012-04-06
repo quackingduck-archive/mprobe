@@ -1,5 +1,5 @@
 { "name": "mprobe"
-, "version": "0.2.0-dev"
+, "version": "0.2.1-dev"
 
 , "bin": { "mprobe": "./bin/mprobe-dev" }
 
@@ -8,14 +8,12 @@
 , "engines": { "node": ">=0.6" }
 
 , "dependencies":
-  { "message-ports": "~0.4.1"
-  }
-
-, "devDependencies":
   { "coffee-script": "~1.2.0"
+  , "message-ports": "~0.4.1"
   , "express": "~2.5.9"
   , "stylus": "~0.2.5"
   , "mustache": "~0.4.0"
+  , "ws": "0.4.12"
   }
 
 }
