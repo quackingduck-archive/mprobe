@@ -235,7 +235,7 @@ mprobe.handler = addHandler = (name, builder) ->
 
 # ---
 
-addHandler 'SQL', ->
+mprobe.handler 'SQL', ->
 
   @match (m) -> m.sql_start?
 
@@ -267,7 +267,7 @@ addHandler 'SQL', ->
     @summary.updateSegment 'duration', ms
     @loadedRow = loadedRow
 
-addHandler 'SQL end', ->
+mprobe.handler 'SQL end', ->
 
   @match (m) -> m.sql_end?
 
@@ -294,7 +294,7 @@ addHandler 'SQL end', ->
 
 # ---
 
-addHandler 'Request', ->
+mprobe.handler 'Request', ->
 
   @match (m) -> m.request_start?
 
@@ -318,7 +318,7 @@ addHandler 'Request', ->
     @summary.updateSegment 'duration', ms
     @loadedRow = loadedRow
 
-addHandler 'Request end', ->
+mprobe.handler 'Request end', ->
 
   @match (m) -> m.request_end?
 
@@ -334,7 +334,7 @@ addHandler 'Request end', ->
 
 # ---
 
-addHandler 'Templates Load', ->
+mprobe.handler 'Templates Load', ->
 
   @match (m) -> m is 'templates_load'
 
@@ -354,7 +354,7 @@ addHandler 'Templates Load', ->
     @summary.updateSegment 'duration', ms
     @loadedRow = loadedRow
 
-addHandler 'Templates Loaded', ->
+mprobe.handler 'Templates Loaded', ->
 
   @match (m) -> m is 'templates_loaded'
 
@@ -369,7 +369,86 @@ addHandler 'Templates Loaded', ->
 
 # ---
 
-addHandler 'Probe', ->
+mprobe.handler 'Render', ->
+
+  @match (m) -> m.template_render?
+
+  @row ->
+    @data = @msg.body.template_render
+
+  @summary ->
+    data = @row.data
+    @addSegment 'name', data.name
+    @addSegment 'error', ''
+    @addSegment 'duration', '...'
+
+  @details (state, firstTime) ->
+    @node.toggleClass 'focused', state
+    @loadedRow?.toggleDetails()
+
+  @when 'Render end', timeout: 1000, (loadedRow) ->
+    return no unless @data.id is loadedRow.data.id
+    ms = mprobe.delta loadedRow.msg, @msg
+    @summary.updateSegment 'duration', ms
+    if loadedRow.data.error?
+      @summary.updateSegment 'error', loadedRow.data.error
+
+    @loadedRow = loadedRow
+
+mprobe.handler 'Render end', ->
+
+  @match (m) -> m.template_rendered?
+
+  @row ->
+    @data = @msg.body.template_rendered
+    @hide()
+
+  @details (state, firstTime) ->
+    if firstTime
+      if @data.error?
+        @detailsNode.append mprobe.createSegment class: 'error', value: @data.error
+
+    @detailsNode.toggle state
+    @node.toggleClass 'focused', state
+    @node.toggle state
+
+# ---
+
+mprobe.handler 'App Load', ->
+
+  @match (m) -> m is 'app_load'
+
+  @row ->
+    @data = @msg.body
+
+  @summary ->
+    @addSegment 'duration', '...'
+
+  @details (state, firstTime) ->
+    @node.toggleClass 'focused', state
+    @loadedRow?.toggleDetails()
+
+  @when 'App Loaded', timeout: 1000, (loadedRow) ->
+    ms = mprobe.delta loadedRow.msg, @msg
+    @summary.updateSegment 'duration', ms
+    @loadedRow = loadedRow
+
+mprobe.handler 'App Loaded', ->
+
+  @match (m) -> m is 'app_loaded'
+
+  @row ->
+    @data = @msg.body
+    @hide()
+
+  @details (state, firstTime) ->
+    @node.toggleClass 'focused', state
+    @node.show if firstTime
+    @node.toggle state
+
+# ---
+
+mprobe.handler 'Probe', ->
 
   @match (m) -> yes
 
@@ -381,7 +460,10 @@ addHandler 'Probe', ->
 
   @details (state, firstTime) ->
     if firstTime
-      @detailsNode.append mprobe.createSegment value: JSON.stringify(@data), color: 'json'
+      if (typeof @data is 'object') or (@data.length?)
+        @detailsNode.append mprobe.createSegment value: mprobe.prettyPrintJson(JSON.stringify(@data)), color: 'json'
+      else
+        @detailsNode.append mprobe.createSegment value: JSON.stringify(@data), color: 'json'
 
     @node.toggleClass 'focused', state
     @node.find('.details').toggle state

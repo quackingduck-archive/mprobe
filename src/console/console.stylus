@@ -40,22 +40,24 @@ body
   > div { position: absolute }
 
   > .label
-    width: 140px
+    width: 110px
+    padding-right: 20px
     left: 0
     font-family: sans-serif
     font-size: 10px
     text-transform: uppercase
     color: default-sudued-text-color
+    text-align: right
 
   .timestamp
-    width: 100px
+    width: 80px
     right: 0
     text-align: right
     color: default-sudued-text-color
 
   .body
     left: 140px
-    right: 100px
+    right: 80px
     min-height: 13px
     white-space: nowrap
     overflow: hidden
@@ -101,12 +103,15 @@ body
     z-index: 1
     color: default-sudued-text-color
 
+  &.error
+    color: (red  + 20%) - hsl(0,80%,0)
+
 // Details view
 .row .details
   margin-top: 3px
   border-top: 1px dotted #eee
   padding-top: 3px
-  padding: 3px 10px 0 10px
+  padding: 3px 10px 7px 10px
   line-height: 18px
   * { -webkit-user-select: auto }
 
@@ -129,7 +134,7 @@ body
 
 
 .row.focused .details .segment
-  margin-bottom: 18px
+  margin-bottom: 13px
   &:last-child { margin-bottom: 0 }
 
   .label
