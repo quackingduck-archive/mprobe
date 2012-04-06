@@ -1,0 +1,161 @@
+// Style MindWizardry
+
+* { margin: 0; padding: 0; cursor: default; -webkit-user-select: none; }
+
+default-bg-color = #f1f1f1
+default-border-color = #e7e7e7
+default-text-color = #888
+default-sudued-text-color = #aaa
+
+body
+  font-family: Inconsolata, monospace
+  font-size: 13px
+  padding: 20px 15px
+  background: default-bg-color
+
+  > .header
+    position: fixed
+    top: 0 ; right: 0 ; left: 0
+    height: 20px
+    line-height: 18px
+    z-index: 3
+    padding: 0 15px
+    font-weight: bold
+    font-size: 12px
+    background: rgba(0,0,0,0.5)
+    color: #ccc
+
+// ---
+
+.row
+  color: default-text-color
+  border-bottom: 1px solid default-border-color
+  padding: 3px 0
+
+.row .summary
+  position: relative
+  width: 100%
+  height: 12px
+
+  > div { position: absolute }
+
+  > .label
+    width: 100px
+    left: 0
+    font-family: sans-serif
+    font-size: 10px
+    text-transform: uppercase
+    color: default-sudued-text-color
+
+  .timestamp
+    width: 100px
+    right: 0
+    text-align: right
+    color: default-sudued-text-color
+
+  .body
+    left: 100px
+    right: 100px
+    white-space: nowrap
+    overflow: hidden
+    &:after
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 150px;
+      background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%, default-bg-color 65%);
+
+.row.focused
+  background: #fefefe
+  margin-left: -3px
+  margin-right: -3px
+  padding-left: 3px
+  padding-right: 3px
+
+  .summary .body:after
+    // needs more tweaking
+    width: 100%
+    background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%, #fefefe 20%);
+
+// Summary Segments
+
+.row .summary .body .segment
+  margin-right: 10px
+  display: inline
+
+  > * { display: inline }
+
+  > .label
+    font-family: sans-serif
+    font-size: 10px
+    text-transform: uppercase
+    color: default-sudued-text-color
+    &:after { content: ':' }
+
+  &.duration
+    position: absolute
+    right: 10px
+    z-index: 1
+    color: default-sudued-text-color
+
+// Details view
+.row .details
+  margin-top: 3px
+  border-top: 1px dotted #eee
+  padding-top: 3px
+  padding: 3px 10px 0 10px
+  line-height: 18px
+  * { -webkit-user-select: auto }
+
+// Meta Segments
+
+// this could look a lot nicer
+.row .meta-details
+  margin-top: 3px
+  border-top: 1px dotted #ccc
+  padding-top: 3px
+  padding: 3px 10px 0 10px
+  line-height: 18px
+
+  .segment
+    > *
+      display: inline-block
+    .label
+      margin-right: 5px
+      &:after { content: ":" }
+
+
+.row.focused .details .segment
+  margin-bottom: 18px
+  &:last-child { margin-bottom: 0 }
+
+  .label
+    font-family: sans-serif
+    font-size: 10px
+    text-transform: uppercase
+    color: default-sudued-text-color
+    &:after { content: ':' }
+
+  .value { white-space: pre-wrap }
+
+// ---
+
+// prettify, hacked in some desaturation
+
+.pln { color: (#000 + 50%) }                 // p plain text
+.str { color: (#080 + 50%) - hsl(0,80%,0) }  // p string content
+.kwd { color: (#008 + 50%) - hsl(0,80%,0) }  // p a keyword
+.com { color: (#800 + 50%) - hsl(0,80%,0) }  // p a comment
+.typ { color: (#606 + 50%) - hsl(0,80%,0) }  // p a type name
+.lit { color: (#066 + 50%) - hsl(0,80%,0) }  // p a literal value
+.pun,                                        // punctuation
+.opn,                                        // lisp open bracket
+.clo { color: (#660 + 50%) - hsl(0,80%,0) }  // lisp close bracket
+.tag { color: (#008 + 50%) - hsl(0,80%,0) }  // a markup tag name
+.atn { color: (#606 + 50%) - hsl(0,80%,0) }  // a markup attribute name
+.atv { color: (#080 + 50%) - hsl(0,80%,0) }  // a markup attribute value
+.dec,                                        // a declaration
+.var { color: (#606 + 50%) - hsl(0,80%,0) }  // a variable name
+.fun { color: (red  + 50%) - hsl(0,80%,0) }  // a function name

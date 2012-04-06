@@ -12,7 +12,10 @@
   }
 
 , "devDependencies":
-  { "coffee-script": "1.2.x"
+  { "coffee-script": "~1.2.0"
+  , "express": "~2.5.9"
+  , "stylus": "~0.2.5"
+  , "mustache": "~0.4.0"
   }
 
 }

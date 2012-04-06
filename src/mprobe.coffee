@@ -14,9 +14,10 @@ defaultMeta =
 probe = (args...) ->
   probe._send {}, args...
 
-probe._send = (meta, header, body) ->
+probe._send = (meta, args...) ->
   meta[k] = v for k,v of defaultMeta
   meta.timestamp = Date.now()
-  push { meta, header, body }
+  body = if args.length is 1 then args[0] else args
+  push { meta, body }
 
 module.exports = probe

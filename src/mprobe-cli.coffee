@@ -39,7 +39,7 @@ probeName = process.env.MPROBE or 'mprobe'
 startConsole = ->
   console.log "- starting console"
   findOpenPortGreaterThan 8000, (port) ->
-    mpConsole = require './console'
+    mpConsole = require './console/console'
     mpConsole.run port, ->
       # require('fs').writeFileSync "/tmp/#{probeName}-touch", '' # for dev
       # spawn 'open', ["http://localhost:#{port}"]
