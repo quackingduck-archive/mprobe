@@ -33,11 +33,10 @@ processIncomingMessage = (msg) ->
 
   for handler in handlers
     if handler.match msg.body
-      # link the row to the hanlder that processed it
+      # link the row to the hanlder that will process it
       row.handler = handler
 
-      # process this row with the handler
-      handler.row.call(row) if handler.row?
+      handler.init.call(row) if handler.init?
       handler.summary.call(row.summary) if handler.summary?
 
       # go through the currently waiting callbacks and try to apply one
@@ -114,11 +113,11 @@ class HandlerBuilder
     @handler.name = name
 
   match: (fn) -> @handler.match = fn
-  # todo: @handler.summaryRenderer?
+  init: (fn)  -> @handler.init = fn
+
   summary: (fn) -> @handler.summary = fn
   details: (fn) -> @handler.detailsRenderer = fn
-  # todo: @handler.rowRenderer?
-  row: (fn) -> @handler.row = fn
+
   when: (name, opts, fn) ->
     @handler.callback = { name, timeout: opts.timeout, callback: fn }
 

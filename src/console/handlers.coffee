@@ -4,7 +4,8 @@ mprobe.handler 'SQL', ->
 
   @match (m) -> m.sql_start?
 
-  @row (m) -> @data = @msg.body.sql_start
+  @init (m) ->
+    @data = @msg.body.sql_start
 
   @summary ->
     data = @row.data
@@ -36,7 +37,7 @@ mprobe.handler 'SQL end', ->
 
   @match (m) -> m.sql_end?
 
-  @row ->
+  @init ->
     @data = @msg.body.sql_end
     @hide()
 
@@ -63,7 +64,8 @@ mprobe.handler 'Request', ->
 
   @match (m) -> m.request_start?
 
-  @row (m) -> @data = @msg.body.request_start
+  @init (m) ->
+    @data = @msg.body.request_start
 
   @summary ->
     data = @row.data
@@ -87,8 +89,9 @@ mprobe.handler 'Request end', ->
 
   @match (m) -> m.request_end?
 
-  @row ->
+  @init ->
     @data = @msg.body.request_end
+    @hide()
 
   @summary ->
     data = @row.data
@@ -96,6 +99,7 @@ mprobe.handler 'Request end', ->
 
   @details (state, firstTime) ->
     @node.toggleClass 'focused', state
+    @node.toggle state
 
 # ---
 
@@ -103,7 +107,7 @@ mprobe.handler 'Templates Load', ->
 
   @match (m) -> m is 'templates_load'
 
-  @row ->
+  @init ->
     @data = @msg.body
 
   @summary ->
@@ -123,7 +127,7 @@ mprobe.handler 'Templates Loaded', ->
 
   @match (m) -> m is 'templates_loaded'
 
-  @row ->
+  @init ->
     @data = @msg.body
     @hide()
 
@@ -138,7 +142,7 @@ mprobe.handler 'Render', ->
 
   @match (m) -> m.template_render?
 
-  @row ->
+  @init ->
     @data = @msg.body.template_render
 
   @summary ->
@@ -164,7 +168,7 @@ mprobe.handler 'Render end', ->
 
   @match (m) -> m.template_rendered?
 
-  @row ->
+  @init ->
     @data = @msg.body.template_rendered
     @hide()
 
@@ -183,7 +187,7 @@ mprobe.handler 'App Load', ->
 
   @match (m) -> m is 'app_load'
 
-  @row ->
+  @init ->
     @data = @msg.body
 
   @summary ->
@@ -202,7 +206,7 @@ mprobe.handler 'App Loaded', ->
 
   @match (m) -> m is 'app_loaded'
 
-  @row ->
+  @init ->
     @data = @msg.body
     @hide()
 
@@ -217,7 +221,7 @@ mprobe.handler 'Probe', ->
 
   @match (m) -> yes
 
-  @row -> @data = @msg.body
+  @init -> @data = @msg.body
 
   @summary ->
     data = @row.data
