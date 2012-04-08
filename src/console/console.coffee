@@ -42,6 +42,7 @@ js = (res) ->
     readFile('vendor/prettify-lang-sql.js')
     # the console client app
     coffee.compile(readFile('console-client.coffee'), bare: yes)
+    coffee.compile(readFile('handlers.coffee'), bare: yes)
   ].join "\n\n"
 
 css = (res) ->
