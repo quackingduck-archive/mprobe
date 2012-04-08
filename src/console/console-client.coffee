@@ -37,7 +37,7 @@ processIncomingMessage = (msg) ->
       row.handler = handler
 
       handler.init.call(row) if handler.init?
-      handler.summary.call(row.summary) if handler.summary?
+      handler.renderSummary.call(row.summary) if handler.renderSummary?
 
       # go through the currently waiting callbacks and try to apply one
       # to this row, if it applies successfully, remove it from callbacks
@@ -115,7 +115,7 @@ class HandlerBuilder
   match: (fn) -> @handler.match = fn
   init: (fn)  -> @handler.init = fn
 
-  summary: (fn) -> @handler.summary = fn
+  summary: (fn) -> @handler.renderSummary = fn
   details: (fn) -> @handler.detailsRenderer = fn
 
   when: (name, opts, fn) ->
