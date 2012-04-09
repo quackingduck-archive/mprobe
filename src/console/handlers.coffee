@@ -7,31 +7,29 @@ mprobe.handler 'SQL', ->
   @init (m) ->
     @data = @msg.body.sql_start
 
-  @summary ->
-    data = @row.data
-    @addSegment 'query', data.query, color: 'sql'
-    @addSegment 'params', JSON.stringify(data.params), color: 'json', label: 'params' if data.params?
-    @addSegment 'duration', '...'
+  @renderSummary ->
+    @addSummarySegment 'Query', @data.query, showLabel: no, color: 'sql', maxWidth: (if @data.params? then '40%' else '80%')
+    @addSummarySegment 'Params', JSON.stringify(@data.params), color: 'json', maxWidth: '40%' if @data.params?
+    @addSummarySegment 'Duration', '...', showLabel: no
 
-  @details (state, firstTime) ->
-    @node.toggleClass 'focused', state
+  @toggleDetails (event) ->
+    @endRow?.toggleDetails() if event?
 
-    if firstTime
-      @detailsNode.append mprobe.createSegment
-        value: @data.query, color: 'sql'
+  @renderDetails ->
+    @addDetailSegment 'Query', mprobe.newLinesToBr(@data.query), showLabel: no, color: 'sql'
+    @addDetailSegment 'Params', mprobe.prettyPrintJson(JSON.stringify(@data.params)), color: 'json' if @data.params?
 
-      if @data.params?
-        @detailsNode.append mprobe.createSegment
-          label: 'params', value: JSON.stringify(@data.params), color: 'json'
+  @when 'SQL end', timeout: 1000, (endRow) ->
+    return no unless @data.id is endRow.data.id
+    endRow.startRow = this; this.endRow = endRow
 
-    @detailsNode.toggle state
-    @loadedRow?.toggleDetails()
+    ms = mprobe.delta endRow.msg, @msg
+    @updateSummarySegment 'Duration', ms
+    if @data.error?
+      @addSummarySegment 'Error', JSON.stringify(endRow.data.error), color: 'json'
+    else
+      @addSummarySegment 'Rows', endRow.data.result.rowCount
 
-  @when 'SQL end', timeout: 1000, (loadedRow) ->
-    return no unless @data.id is loadedRow.data.id
-    ms = mprobe.delta loadedRow.msg, @msg
-    @summary.updateSegment 'duration', ms
-    @loadedRow = loadedRow
 
 mprobe.handler 'SQL end', ->
 
@@ -41,22 +39,17 @@ mprobe.handler 'SQL end', ->
     @data = @msg.body.sql_end
     @hide()
 
-  # only called when 'SQL' details toggled
-  @details (state, firstTime) ->
-    if firstTime
-      @node.show()
-      resultOrError = if @data.error? then 'error' else 'result'
-      @detailsNode.append mprobe.createSegment
-        class: resultOrError, label: resultOrError, value: JSON.stringify(@data[resultOrError]), color: 'json'
+  @renderSummary ->
+    [label, field] = if @data.error? then ['Error','error'] else ['Result','result']
+    @addSummarySegment label, JSON.stringify(@data[field]), color: 'json'
 
-    @node.toggleClass 'focused', state
-    @detailsNode.toggle state
-    @node.toggle state
+  @toggleDetails (event) ->
+    @node.toggle()
+    @startRow?.toggleDetails() if event?
 
-  @summary ->
-    data = @row.data
-    resultOrError = if data.error? then 'error' else 'result'
-    @addSegment resultOrError, JSON.stringify(data[resultOrError]), color: 'json', label: resultOrError
+  @renderDetails ->
+    [label, field] = if @data.error? then ['Error','error'] else ['Result','result']
+    @addDetailSegment label, mprobe.newLinesToBr(mprobe.prettyPrintJson(JSON.stringify(@data[field]))), color: 'json'
 
 # ---
 
@@ -67,23 +60,29 @@ mprobe.handler 'Request', ->
   @init (m) ->
     @data = @msg.body.request_start
 
-  @summary ->
-    data = @row.data
-    @addSegment 'method', data.method
-    @addSegment 'url', data.url
-    @addSegment 'duration', '...'
+  @renderSummary ->
+    @addSummarySegment 'Method', @data.method, showLabel: no
+    @addSummarySegment 'Url', @data.url, showLabel: no
+    @addSummarySegment 'Duration', '...', showLabel: no
 
-  @details (state, firstTime) ->
-    @node.toggleClass 'focused', state
-    @loadedRow?.toggleDetails()
-    # todo: show request headers
-    # todo: show cookies
+  @renderDetails ->
+    # todo: show full request headers
+    # @detailsNode.hide()
 
-  @when 'Request end', timeout: 1000, (loadedRow) ->
-    return no unless @data.id is loadedRow.data.id
-    ms = mprobe.delta loadedRow.msg, @msg
-    @summary.updateSegment 'duration', ms
-    @loadedRow = loadedRow
+  @toggleDetails (event) ->
+    @detailsNode.hide()
+    # if this row is being clicked, also show the endRow
+    @endRow?.toggleDetails() if event?
+
+  @when 'Request end', timeout: 10000, (endRow) ->
+    return no unless @data.id is endRow.data.id
+    endRow.startRow = this; this.endRow = endRow
+
+    ms = mprobe.delta endRow.msg, @msg
+    @updateSummarySegment 'Duration', ms
+
+    @addSummarySegment 'Status', endRow.data.status
+
 
 mprobe.handler 'Request end', ->
 
@@ -93,13 +92,17 @@ mprobe.handler 'Request end', ->
     @data = @msg.body.request_end
     @hide()
 
-  @summary ->
-    data = @row.data
-    @addSegment 'status', data.status
+  @renderSummary ->
+    @addSummarySegment 'Status', @data.status
 
-  @details (state, firstTime) ->
-    @node.toggleClass 'focused', state
-    @node.toggle state
+  @renderDetails ->
+    # todo: show response headers
+
+  @toggleDetails (event) ->
+    @node.toggle()
+    @detailsNode.hide()
+    @startRow?.toggleDetails() if event?
+
 
 # ---
 
@@ -107,34 +110,30 @@ mprobe.handler 'Templates Load', ->
 
   @match (m) -> m is 'templates_load'
 
-  @init ->
-    @data = @msg.body
+  @renderSummary ->
+    @addSummarySegment 'Duration', '...'
 
-  @summary ->
-    @addSegment 'duration', '...'
+  # todo: show template names
 
-  @details (state, firstTime) ->
-    @node.toggleClass 'focused', state
-    @loadedRow?.toggleDetails()
+  @toggleDetails (event) ->
+    @detailsNode.hide()
+    @endRow?.toggleDetails() if event?
 
-  @when 'Templates Loaded', timeout: 1000, (loadedRow) ->
-    # return no unless @data is loadedRow.data
-    ms = mprobe.delta loadedRow.msg, @msg
-    @summary.updateSegment 'duration', ms
-    @loadedRow = loadedRow
+  @when 'Templates Loaded', timeout: 1000, (endRow) ->
+    this.endRow = endRow; endRow.startRow = this
+    @updateSummarySegment 'Duration', mprobe.delta(endRow.msg, @msg)
+
 
 mprobe.handler 'Templates Loaded', ->
 
   @match (m) -> m is 'templates_loaded'
 
-  @init ->
-    @data = @msg.body
-    @hide()
+  @init -> @hide()
 
-  @details (state, firstTime) ->
-    @node.toggleClass 'focused', state
-    @node.show if firstTime
-    @node.toggle state
+  @toggleDetails (event) ->
+    @node.toggle()
+    @detailsNode.hide()
+    @startRow?.toggleDetails() if event?
 
 # ---
 
@@ -145,24 +144,22 @@ mprobe.handler 'Render', ->
   @init ->
     @data = @msg.body.template_render
 
-  @summary ->
-    data = @row.data
-    @addSegment 'name', data.name
-    @addSegment 'error', ''
-    @addSegment 'duration', '...'
+  @renderSummary ->
+    @addSummarySegment 'Name', @data.name, showLabel: no
+    @addSummarySegment 'Error', '', showLabel: no
+    @addSummarySegment 'Duration', '...', showLabel: no
 
-  @details (state, firstTime) ->
-    @node.toggleClass 'focused', state
-    @loadedRow?.toggleDetails()
+  @toggleDetails (event) ->
+    @detailsNode.hide()
+    @endRow?.toggleDetails() if event?
 
-  @when 'Render end', timeout: 1000, (loadedRow) ->
-    return no unless @data.id is loadedRow.data.id
-    ms = mprobe.delta loadedRow.msg, @msg
-    @summary.updateSegment 'duration', ms
-    if loadedRow.data.error?
-      @summary.updateSegment 'error', loadedRow.data.error
+  @when 'Render end', timeout: 1000, (endRow) ->
+    return no unless @data.id is endRow.data.id
+    this.endRow = endRow; endRow.startRow = this
+    @updateSummarySegment 'Duration', mprobe.delta(endRow.msg, @msg)
 
-    @loadedRow = loadedRow
+    if endRow.data.error?
+      @summary.updateSegment 'Error', endRow.data.error
 
 mprobe.handler 'Render end', ->
 
@@ -172,50 +169,15 @@ mprobe.handler 'Render end', ->
     @data = @msg.body.template_rendered
     @hide()
 
-  @details (state, firstTime) ->
-    if firstTime
-      if @data.error?
-        @detailsNode.append mprobe.createSegment class: 'error', value: @data.error
+  @renderDetails ->
+    if @data.error?
+      # todo: better formatting
+      @addDetailSegment 'Error', @data.error
 
-    @detailsNode.toggle state
-    @node.toggleClass 'focused', state
-    @node.toggle state
-
-# ---
-
-mprobe.handler 'App Load', ->
-
-  @match (m) -> m is 'app_load'
-
-  @init ->
-    @data = @msg.body
-
-  @summary ->
-    @addSegment 'duration', '...'
-
-  @details (state, firstTime) ->
-    @node.toggleClass 'focused', state
-    @loadedRow?.toggleDetails()
-
-  @when 'App Loaded', timeout: 1000, (loadedRow) ->
-    ms = mprobe.delta loadedRow.msg, @msg
-    @summary.updateSegment 'duration', ms
-    @loadedRow = loadedRow
-
-mprobe.handler 'App Loaded', ->
-
-  @match (m) -> m is 'app_loaded'
-
-  @init ->
-    @data = @msg.body
-    @hide()
-
-  @details (state, firstTime) ->
-    @node.toggleClass 'focused', state
-    @node.show if firstTime
-    @node.toggle state
-
-# ---
+  @toggleDetails (event) ->
+    @node.toggle()
+    @detailsNode.hide()
+    @startRow?.toggleDetails() if event?
 
 mprobe.handler 'Probe', ->
 
@@ -223,16 +185,12 @@ mprobe.handler 'Probe', ->
 
   @init -> @data = @msg.body
 
-  @summary ->
-    data = @row.data
-    @addSegment 'data', JSON.stringify(data), color: 'json'
+  @renderSummary ->
+    @addSummarySegment 'Data', JSON.stringify(@data), color: 'json', showLabel: no
 
-  @details (state, firstTime) ->
-    if firstTime
-      if (typeof @data is 'object') or (@data.length?)
-        @detailsNode.append mprobe.createSegment value: mprobe.prettyPrintJson(JSON.stringify(@data)), color: 'json'
-      else
-        @detailsNode.append mprobe.createSegment value: JSON.stringify(@data), color: 'json'
+  @renderDetails ->
+    if (typeof @data is 'object') or (@data.length?)
+      @addDetailSegment 'Data', mprobe.newLinesToBr(mprobe.prettyPrintJson(JSON.stringify(@data))), color: 'json', showLabel: no
+    else
+      @addDetailSegment 'Data', JSON.stringify(@data), color: 'json', showLabel: no
 
-    @node.toggleClass 'focused', state
-    @node.find('.details').toggle state

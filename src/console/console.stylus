@@ -61,14 +61,6 @@ body
     min-height: 13px
     white-space: nowrap
     overflow: hidden
-    &:after
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      width: 150px;
-      background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%, default-bg-color 65%);
 
 .row.focused
   background: #fefefe
@@ -78,15 +70,36 @@ body
   padding-right: 3px
 
   .summary .body:after
-    // needs more tweaking
     width: 100%
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
     background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%, #fefefe 20%);
+
+  .summary .body .segment:after
+    background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%, white 80%);
 
 // Summary Segments
 
 .row .summary .body .segment
-  margin-right: 10px
-  display: inline
+  position: relative
+  display: inline-block
+  overflow: hidden
+  padding-right: 20px
+
+  // fade out right edge
+  &:after
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 25px;
+    background: -webkit-linear-gradient(left, rgba(255,255,255,0) 0%, default-bg-color 80%);
+
+  &[data-label="Duration"]:after { display: none }
 
   > * { display: inline }
 

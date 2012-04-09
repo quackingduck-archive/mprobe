@@ -15,9 +15,10 @@ $('body').on 'click', (event) ->
 
   id = row.attr('data-id')
 
-  if      $(event.target).closest('.label')     then rows[id].toggleDetails()
-  else if $(event.target).closest('.summary')   then rows[id].toggleDetails()
-  else if $(event.target).closest('.timestamp') then rows[id].toggleMetaDetails()
+  if      $(event.target).closest('.label')     then rows[id].toggleDetails(event)
+  else if $(event.target).closest('.summary')   then rows[id].toggleDetails(event)
+  # todo: make this work again
+  # else if $(event.target).closest('.timestamp') then rows[id].toggleMetaDetails()
 
 # ---
 
@@ -37,7 +38,7 @@ processIncomingMessage = (msg) ->
       row.handler = handler
 
       handler.init.call(row) if handler.init?
-      handler.renderSummary.call(row.summary) if handler.renderSummary?
+      handler.renderSummary.call(row) if handler.renderSummary?
 
       # go through the currently waiting callbacks and try to apply one
       # to this row, if it applies successfully, remove it from callbacks
@@ -78,31 +79,6 @@ mprobe.delta = (oldMsg, newMsg) ->
   ms = oldMsg.meta.timestamp - newMsg.meta.timestamp
   ms + 'ms'
 
-mprobe.newLinesToBr = (str) ->
-  str.replace(/\n/g, '<br>')
-
-mprobe.synHighlight = prettyPrintOne
-
-mprobe.prettyPrintJson = (jsonStr) ->
-  Js2coffee.build "(#{jsonStr})"
-
-mprobe.createSegment = (opts) ->
-  segNode = newSegmentNode()
-
-  segNode.addClass opts.class if opts.class?
-
-  if opts.label?
-    segNode.find('.label').text opts.label
-  else
-    segNode.find('.label').remove()
-
-  value = mprobe.newLinesToBr(opts.value)
-  value = mprobe.synHighlight(mprobe.newLinesToBr(value), opts.color) if opts.color?
-
-  segNode.find('.value').html value
-
-  segNode
-
 # ---
 
 # builder api
@@ -115,8 +91,9 @@ class HandlerBuilder
   match: (fn) -> @handler.match = fn
   init: (fn)  -> @handler.init = fn
 
-  summary: (fn) -> @handler.renderSummary = fn
-  details: (fn) -> @handler.detailsRenderer = fn
+  renderSummary: (fn) -> @handler.renderSummary = fn
+  renderDetails: (fn) -> @handler.renderDetails = fn
+  toggleDetails: (fn) -> @handler.toggleDetails = fn
 
   when: (name, opts, fn) ->
     @handler.callback = { name, timeout: opts.timeout, callback: fn }
@@ -131,7 +108,26 @@ class Row
     @id = msg.meta.timestamp + '-' + Math.random().toString().split('.')[1]
     @node = newRowNode()
     @detailsNode = @node.find('.details')
-    @summary = new Summary @
+    @summaryBodyNode = @node.find('.summary .body')
+
+  render: ->
+    @node.data 'id', @id
+    @node.addClass @computeClass()
+
+    @node.find('.meta-details').toggle off
+    @node.find('.details').toggle off
+
+    @node.find('.timestamp').text formatTime @msg.meta.timestamp
+    @node.find('.summary > .label').text @computeLabel()
+
+  addSummarySegment: (label, value, opts) ->
+    @summaryBodyNode.append mprobe.createSegmentNode label, value, opts
+
+  updateSummarySegment: (label, value) ->
+    @summaryBodyNode.find(".segment[data-label='#{label}']").text value
+
+  addDetailSegment: (label, value, opts) ->
+    @detailsNode.append mprobe.createSegmentNode label, value, opts
 
   computeLabel: ->
     @handler?.name or "probe"
@@ -139,15 +135,15 @@ class Row
   computeClass: ->
     @explicitlySetClass or @computeLabel().replace(/[ ]/g,'-').toLowerCase()
 
-  toggleDetails: ->
-    @showingDetails ?= yes
-    @renderedDetails ?= no
+  toggleDetails: (event) ->
+    unless (@renderedDetails ?= no)
+      @handler.renderDetails.call(@) if @handler.renderDetails?
+      @renderedDetails = yes
 
-    if @handler.detailsRenderer?
-      @handler.detailsRenderer.call(@, @showingDetails, not @renderedDetails)
+    @node.toggleClass 'focused'
+    @detailsNode.toggle()
+    @handler.toggleDetails.call(this,event) if @handler.toggleDetails?
 
-    @renderedDetails = yes
-    @showingDetails = not @showingDetails
 
   toggleMetaDetails: ->
     @showingMetaDetails ?= no
@@ -164,52 +160,6 @@ class Row
 
   hide: -> @node.hide()
 
-  render: ->
-    @node.data 'id', @id
-    @node.addClass @computeClass()
-    @node.find('.meta-details').toggle off
-    @node.find('.details').toggle off
-    @node.find('.timestamp').text formatTime @msg.meta.timestamp
-    @node.find('.summary .label').text @computeLabel()
-    @summary.render()
-
-
-class Summary
-
-  constructor: (@row) ->
-    @segments = []
-    @msg = @row.msg
-    @node = @row.node.find '.summary .body'
-
-  addSegment: (name, value, opts = {}) ->
-    @segments.push {name, value, label: opts.label, color: opts.color }
-
-  updateSegment: (name, content) ->
-    @node.find('.'+ name).text content
-
-  render: ->
-    segNodes = for segment in @segments
-      segNode = newSegmentNode()
-      segNode.addClass segment.name
-
-      if segment.label?
-        segNode.find('.label').text segment.label
-      else
-        segNode.find('.label').remove()
-
-      valNode = segNode.find('.value')
-
-      if segment.color?
-        valNode.addClass 'colored'
-        if typeof segment.color is 'string'
-          valNode.html prettyPrintOne(segment.value, segment.color)
-        else
-          valNode.html prettyPrintOne(segment.value)
-      else
-        valNode.text segment.value
-
-      @node.append segNode
-
 # ---
 
 formatTime = (ms) ->
@@ -220,6 +170,34 @@ padInt = (int, length) ->
   str = '' + int
   str = '0' + str while str.length < length
   str
+
+# ---
+
+mprobe.createSegmentNode = (label, value, opts = {}) ->
+  segNode = newSegmentNode()
+
+  # todo: deprecate
+  segNode.addClass opts.class or label.replace(/[ ]/g,'-').toLowerCase()
+
+  segNode.css 'max-width', opts.maxWidth if opts.maxWidth?
+
+  segNode.data 'label', label
+
+  segNode.find('.label').text label
+  segNode.find('.label').hide() if opts.showLabel is no
+
+  value = mprobe.synHighlight(value, opts.color) if opts.color?
+  segNode.find('.value').html value
+
+  segNode
+
+mprobe.newLinesToBr = (str) ->
+  str.replace(/\n/g, '<br>')
+
+mprobe.synHighlight = prettyPrintOne
+
+mprobe.prettyPrintJson = (jsonStr) ->
+  Js2coffee.build "(#{jsonStr})"
 
 # ---
 
