@@ -126,8 +126,17 @@ class Row
   updateSummarySegment: (label, value) ->
     @summaryBodyNode.find(".segment[data-label='#{label}']").text value
 
-  addDetailSegment: (label, value, opts) ->
+  addDetailSegment: (label, value, opts = {}) ->
     @detailsNode.append mprobe.createSegmentNode label, value, opts
+
+    # we re-do the syntax highlighting with the element in the dom because
+    # that actually preserves whitespace
+    if opts.color?
+      node = @detailsNode.find('.segment .value').last()[0]
+      node.innerHTML = value
+      setTimeout( ->
+        prettyPrintNode(node, value)
+      , 10) if opts.color?
 
   computeLabel: ->
     @handler?.name or "probe"
