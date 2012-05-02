@@ -66,11 +66,11 @@ mprobe.handler 'Request', ->
     @addSummarySegment 'Duration', '...', showLabel: no
 
   @renderDetails ->
-    # todo: show full request headers
-    # @detailsNode.hide()
+    @addDetailSegment 'Method', @data.method
+    @addDetailSegment 'Url', @data.url
+    @addDetailSegment 'Headers', mprobe.prettyPrintJson(JSON.stringify(@data.headers)), color: 'json'
 
   @toggleDetails (event) ->
-    @detailsNode.hide()
     # if this row is being clicked, also show the endRow
     @endRow?.toggleDetails() if event?
 
