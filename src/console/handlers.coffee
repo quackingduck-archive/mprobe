@@ -179,6 +179,22 @@ mprobe.handler 'Render end', ->
     @detailsNode.hide()
     @startRow?.toggleDetails() if event?
 
+# ---
+
+mprobe.handler 'Debug', ->
+
+  @match (m) -> m.debug?
+
+  @init -> @data = @msg.body
+
+  @renderSummary ->
+    @addSummarySegment (@data.label or 'Data'), _.escape(@data.debug), color: 'json', showLabel: @data.label?
+
+  @renderDetails ->
+    @addDetailSegment (@data.label or 'Data'), _.escape(@data.debug).replace(), color: 'json'
+
+# ---
+
 mprobe.handler 'Probe', ->
 
   @match (m) -> yes
