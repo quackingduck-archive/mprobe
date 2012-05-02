@@ -1437,6 +1437,24 @@ var REGEXP_PRECEDER_PATTERN = '(?:^^\\.?|[+-]|\\!|\\!=|\\!==|\\#|\\%|\\%=|&|&&|&
     doWork();
   }
 
+  // patched in, takes an existing node
+  window.prettyPrintNode = function (node, sourceCodeHtml, opt_langExtension, opt_numberLines) {
+
+    node.innerHTML = sourceCodeHtml;
+    if (opt_numberLines) {
+      numberLines(node, opt_numberLines);
+    }
+
+    var job = {
+      langExtension: opt_langExtension,
+      numberLines: opt_numberLines,
+      sourceNode: node
+    };
+    applyDecorator(job);
+
+    return node;
+  }
+
    /**
     * Find all the {@code <pre>} and {@code <code>} tags in the DOM with
     * {@code class=prettyprint} and prettify them.
