@@ -63,6 +63,7 @@ processIncomingMessage = (msg) ->
     wasScrolledToBottom = scrollBottom() is totalHeight()
     $('body').append row.node
     scollToBottom() if wasScrolledToBottom
+    incrementMessageCount()
   else
     console.log "no hanlder for msg", JSON.stringify row.msg
 
@@ -70,6 +71,9 @@ scollToBottom = -> window.scrollTo(0, totalHeight() - visibleHeight())
 scrollBottom = -> window.scrollY + visibleHeight()
 totalHeight = -> document.body.scrollHeight
 visibleHeight = -> window.innerHeight
+
+messageCountEl = $('.message-count .count')
+incrementMessageCount = -> messageCountEl.text(parseInt(messageCountEl.text())+1)
 
 # ---
 

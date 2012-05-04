@@ -25,6 +25,8 @@ body
     background: rgba(0,0,0,0.5)
     color: #ccc
 
+  .message-count { float: right }
+
 // ---
 
 .row
