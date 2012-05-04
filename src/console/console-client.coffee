@@ -60,9 +60,16 @@ processIncomingMessage = (msg) ->
 
   if row.handler?
     row.render()
+    wasScrolledToBottom = scrollBottom() is totalHeight()
     $('body').append row.node
+    scollToBottom() if wasScrolledToBottom
   else
     console.log "no hanlder for msg", JSON.stringify row.msg
+
+scollToBottom = -> window.scrollTo(0, totalHeight() - visibleHeight())
+scrollBottom = -> window.scrollY + visibleHeight()
+totalHeight = -> document.body.scrollHeight
+visibleHeight = -> window.innerHeight
 
 # ---
 
