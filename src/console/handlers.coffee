@@ -96,11 +96,10 @@ mprobe.handler 'Request end', ->
     @addSummarySegment 'Status', @data.status
 
   @renderDetails ->
-    # todo: show response headers
+    @addDetailSegment 'Status', @data.status
 
   @toggleDetails (event) ->
     @node.toggle()
-    @detailsNode.hide()
     @startRow?.toggleDetails() if event?
 
 
